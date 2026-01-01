@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Exotica Holiday - Adventure Tours for Youth 🔥</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #ff4d4d;
+            --accent: #ff6b35;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light);
+            color: #333;
+            line-height: 1.6;
+            padding-top: 100px; /* offset fixed header */
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+        header {
+            background: var(--dark);
+            color: white;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a { color: white; text-decoration: none; font-weight: bold; }
+        nav a:hover { color: var(--primary); }
+
+        .menu-toggle { display: none; font-size: 1.8rem; cursor: pointer; }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin: 4rem 0 2rem;
+            color: var(--dark);
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        select, input[type="search"] {
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            perspective: 1200px;
+            height: 480px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .flip-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 25px 60px rgba(255, 77, 77, 0.4);
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            border-radius: 20px;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        }
+
+        .flip-card-inner.flipped {
+            transform: rotateY(180deg) scale(1.02);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .package-img {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .package-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .package-content h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--dark); }
+        .price { font-size: 1.8rem; color: var(--primary); font-weight: bold; margin: 0.5rem 0; }
+        .sale { background: var(--primary); color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.9rem; }
+        .old-price { text-decoration: line-through; color: #999; margin-left: 10px; }
+        .package-content p { margin-bottom: 1rem; color: #666; }
+
+            .flip-card-back {
+            background: linear-gradient(135deg, #0d1b2a, #0349a9);
+            color: white;
+            transform: rotateY(180deg);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .flip-card-back h3 { font-size: 1.6rem; margin-bottom: 1.2rem; color: var(--primary); }
+
+        .flip-card-back ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            padding: 0;
+        }
+
+        .flip-card-back li {
+            margin: 0.9rem 0;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .flip-card-back li i {
+            color: var(--primary);
+            margin-right: 12px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .flip-card-back .btn {
+            background: var(--primary);
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .flip-card-back .btn:hover { background: #cc0000; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover { color: black; }
+
+        .modal h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        footer p { margin: 1rem 0; }
+
+        @media (max-width: 1200px) {
+            .packages-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 992px) {
+            .packages-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .packages-grid { grid-template-columns: 1fr; }
+            nav ul { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--dark); padding: 1rem; }
+            nav ul.active { display: flex; }
+            .menu-toggle { display: block; }
+            body { padding-top: 64px; }
+        }
+
+.blank-section {
+    border: 3px solid var(--primary);
+    border-radius: 16px;
+    min-height: 600px;
+    margin: 0 auto 4rem auto;
+    max-width: 1800px;
+    background: transparent;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 0;
+}
+
+.inner-container {
+    display: flex;
+    height: 100%;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+/* Left Section with Hero Backdrop */
+/* Ensure left section contains all heroes */
+.inner-left {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    min-height: 100%;
+    padding: 6rem 2.5rem; /* Top/bottom 6rem, left/right 2.5rem */
+}
+
+/* All hero slides are inside, only active one visible */
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out;
+}
+
+/* Active hero */
+.hero-slide.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Backdrop */
+.hero-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;          /* Keeps aspect ratio */
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.7);         /* Keep this for overlay effect */
+    image-rendering: crisp-edges;    /* Prevents pixelation */
+    z-index: 0;
+}
+
+/* Content on top */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 2.5rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Sale Badge, Heading, Text, Buttons (unchanged) */
+
+.sale-badge-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background: rgba(255, 0, 0, 0.7);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: none; /* Hidden by default */
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+    min-width: 300px;
+    max-width: 80%;
+}
+
+.sale-badge-wrapper.visible {
+    display: block;
+}
+
+.hero-content h1 {
+    font-size: 2.8rem;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.hero-content p {
+    font-size: 1.3rem;
+    margin: 0 0 2rem 0;
+    opacity: 0.95;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.hero-buttons .btn:hover {
+    background: #cc0000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .inner-left, .inner-right {
+        flex: 1;
+    }
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+}
+
+.inner-left { flex: 1.2; } /* Slightly wider left */
+.inner-right { flex: 0.8; } /* Slightly narrower right */
+
+/* Booking Tabs & Form Styles */
+.booking-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary);
+}
+
+.tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.booking-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.booking-card input,
+.booking-card select,
+.booking-card textarea {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.booking-card button {
+    background: var(--primary);
+    color: white;
+    padding: 1.2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.booking-card button:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+}
+
+/* Booking Form Styles */
+
+.inner-right h2 {
+    text-align: center;
+    color: var(--primary);
+    margin: 0 0 1rem 0;
+    font-size: 1.8rem;
+}
+
+.booking-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 3px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s;
+    position: relative;
+    font-size: 1.1rem;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary);
+}
+
+.tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-pane {
+    display: none;
+    flex: 1;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+.booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(145deg, #ffffff, #f9f9f9);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 77, 77, 0.15);
+}
+
+/* Form Rows */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Input & Select Fields */
+.form-row input,
+.form-row select,
+.form-row textarea {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.2);
+    outline: none;
+}
+
+/* Textarea */
+.form-row textarea {
+    flex-basis: 100%; /* Full width for additional info */
+    resize: vertical;
+    min-height: 90px;
+    font-size: 1rem;
+}
+
+/* Submit Button */
+.form-row button {
+    background: linear-gradient(90deg, var(--primary), #e63946);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+    min-width: 160px;
+}
+
+.form-row button:hover {
+    background: linear-gradient(90deg, #e63946, var(--primary));
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 77, 77, 0.5);
+}
+
+/* Make the last row horizontal */
+.last-row {
+    display: flex;
+    align-items: flex-start; /* Align tops of textarea & button */
+    gap: 1.5rem; /* Space between textarea and button */
+    flex-wrap: nowrap; /* Force side-by-side on large screens */
+}
+
+/* Textarea takes most of the space */
+.last-row textarea {
+    flex: 1; /* Takes available space */
+    min-height: 100px; /* Keep your height */
+    resize: vertical;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+/* Button stays compact and aligned */
+.last-row button {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 160px; /* Fixed width so it doesn't stretch */
+    height: fit-content; /* Button height matches textarea top */
+    align-self: flex-start; /* Aligns button to top of textarea */
+}
+
+/* Hover effect */
+.last-row button:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+    .last-row {
+        flex-direction: column; /* Stack on small screens */
+        gap: 1rem;
+    }
+    .last-row button {
+        width: 100%; /* Button full width on mobile */
+        align-self: center;
+    }
+}
+ 
+
+/* Left Section - Hero Content Styles */
+.inner-left {
+    flex: 1.2;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1.5rem;
+}
+
+.hero-content {
+    width: 100%;
+}
+
+.sale-badge {
+    background: linear-gradient(90deg, var(--primary), #e63946);
+    color: white;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
+}
+
+.hero-content h1 {
+    color: #ffff00;
+    font-size: 2.8rem;
+    margin: 0 0 1rem 0;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.hero-content p {
+    color: #ffffff !important; /* White text */
+    font-size: 1.3rem;
+    margin: 0 0 2rem 0;
+    line-height: 1.6;
+    opacity: 0.95;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+}
+
+.hero-buttons .btn:hover {
+    background: #cc0000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 77, 77, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .inner-left, .inner-right {
+        flex: 1; /* Equal width on smaller screens */
+    }
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+}
+
+/* Force bright color on sale badge text - overrides parent */
+.sale-badge {
+    color: #ffff00 !important; /* Bright yellow - very attractive for offers */
+    -webkit-text-stroke: 1px #ff0000 !important; /* Red outline for contrast */
+    text-shadow: 0 0 10px #ffff00, 0 0 20px #ff4d4d !important; /* Neon glow */
+    background: linear-gradient(90deg, var(--primary), #e63946) !important;
+    padding: 0.8rem 2rem !important;
+    border-radius: 50px !important;
+    font-weight: 900 !important;
+    font-size: 1.6rem !important;
+    display: inline-block !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 0 8px 25px rgba(255, 77, 77, 0.7) !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+}
+
+</style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container nav-container">
+            <div class="logo">
+    <img id="siteLogo" src="" alt="Company Logo" style="height:50px; vertical-align: middle; margin-right: 10px; display: none;">
+    <span id="siteName">Exotica Holiday</span>
+</div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#packages">Packages</a></li>
+                    <li><a href="OtherServices.html">Other Services</a></li>
+                    <li><a href="#contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <!-- Blank Section with Two Inner Sections -->
+<section class="blank-section">
+    <div class="booking-tabs">
+        <button class="tab-btn active" data-tab="package">Package</button>
+        <button class="tab-btn" data-tab="car">Car</button>
+        <button class="tab-btn" data-tab="cruise">Cruise</button>
+        <button class="tab-btn" data-tab="visa">Visa</button>
+    </div>
+    <div class="inner-container">
+
+<!-- Left Inner Section - Hero with Backdrop -->
+<!-- Left Inner Section - Dynamic Hero -->
+<div class="inner-left">
+    <div class="hero-slide active" id="hero-package">
+        <div class="hero-backdrop" id="hero-backdrop-package"></div>
+        <div class="hero-content">
+            <div class="sale-badge-wrapper" id="sale-badge-wrapper">
+            <div class="sale-badge" id="hero-sale-badge"></div>
+        </div>
+            <h1 id="hero-heading-package"></h1>
+            <p id="hero-desc-package"></p>
+            <div class="hero-buttons">
+                <a id="hero-btn1-package" class="btn"></a>
+                <a id="hero-btn2-package" class="btn"></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repeat similar structure for car, cruise, visa -->
+    <div class="hero-slide" id="hero-car">
+        <div class="hero-backdrop" id="hero-backdrop-car"></div>
+        <div class="hero-content">
+            <div class="sale-badge-wrapper" id="sale-badge-wrapper">
+            <div class="sale-badge" id="hero-sale-badge"></div>
+        </div>
+            <h1 id="hero-heading-car"></h1>
+            <p id="hero-desc-car"></p>
+            <div class="hero-buttons">
+                <a id="hero-btn1-car" class="btn"></a>
+                <a id="hero-btn2-car" class="btn"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-slide" id="hero-cruise">
+        <div class="hero-backdrop" id="hero-backdrop-cruise"></div>
+        <div class="hero-content">
+            <div class="sale-badge-wrapper" id="sale-badge-wrapper">
+            <div class="sale-badge" id="hero-sale-badge"></div>
+        </div>
+            <h1 id="hero-heading-cruise"></h1>
+            <p id="hero-desc-cruise"></p>
+            <div class="hero-buttons">
+                <a id="hero-btn1-cruise" class="btn"></a>
+                <a id="hero-btn2-cruise" class="btn"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-slide" id="hero-visa">
+        <div class="hero-backdrop" id="hero-backdrop-visa"></div>
+        <div class="hero-content">
+            <div class="sale-badge-wrapper" id="sale-badge-wrapper">
+            <div class="sale-badge" id="hero-sale-badge"></div>
+        </div>
+            <h1 id="hero-heading-visa"></h1>
+            <p id="hero-desc-visa"></p>
+            <div class="hero-buttons">
+                <a id="hero-btn1-visa" class="btn"></a>
+                <a id="hero-btn2-visa" class="btn"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Right Inner Section - Booking Form -->
+<div class="inner-right">
+    <!-- <h2>Book Your Adventure</h2> -->
+
+
+    <!-- Tab Content -->
+    <!-- Tab Content (all tabs as direct children of .tab-content) -->
+<div class="tab-content">
+    <!-- Package Tab -->
+    <div id="package-tab" class="tab-pane active">
+        <form id="packageBookingForm" class="booking-form">
+            <h2>Book Your Package</h2>
+                <div class="form-row">
+                    <input type="text" id="name" name="name" placeholder="Name" required>
+                    <input type="number" id="persons" name="persons" min="1" placeholder="# of Person" required>
+                    <input type="tel" id="phone" name="phone" placeholder="Mobile Phone Number" required>
+                </div>
+
+                                <div class="form-row">
+                    
+                        <select id="package" name="package" required>
+                            <option value="">Select Package</option>
+                            <!-- Options will be dynamically added by JS above -->
+                        </select>
+
+                    <input type="date" id="travelDate" name="travelDate" required placeholder="Travel Date">
+                    <select id="hotelCategory" name="hotelCategory" required>
+                        <option value="">Hotel Category</option>
+                        <option value="3star">3 Star</option>
+                        <option value="4star">4 Star</option>
+                        <option value="5star">5 Star</option>
+                    </select> 
+                    
+                </div>
+
+                <div class="form-row">
+                                        <select id="mealType" name="mealType" required>
+                        <option value="">Meal Type</option>
+                        <option value="breakfast">Breakfast</option>
+                        <option value="bfast-lunch-dinner">B.Fast-Lunch-Dinner</option>
+                        <option value="only-room">Only Hotel Room</option>
+                    </select>
+                    <input type="email" id="email" name="email" placeholder="Email Address" required>
+                    </div>
+
+<!-- Row 4: Additional Info + Submit Button (side by side) -->
+<div class="form-row last-row">
+    <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Additional Information"></textarea>
+    <button type="submit">Book Now</button>
+</div>
+    </form>
+    </div>
+
+
+<div id="car-tab" class="tab-pane">
+    <form id="carBookingForm" class="booking-form">
+        <h2>Book Your Car</h2>
+        <!-- Row 1 -->
+        <div class="form-row">
+            <input type="text" id="name" name="name" placeholder="Name" required>
+            <input type="tel" id="phone" name="phone" placeholder="Mobile Phone Number" required>
+            <input type="text" placeholder="Pick-up Location" required>
+            <input type="text" placeholder="Destination Location" required>
+        </div>
+        <!-- Row 2 -->
+        <div class="form-row">
+            <input type="date" placeholder="Pick-up Date" required>
+            <input type="date" placeholder="Drop-off Date" required>
+            <select required>
+                <option value="">Vehicle Type</option>
+                <option value="sedan">Sedan</option>
+                <option value="suv">SUV</option>
+                <option value="innova">Innova</option>
+            </select>
+        </div>
+        <!-- Row 3 -->
+        <div class="form-row">
+            <textarea rows="3" placeholder="Special Requests"></textarea>
+            <button type="submit">Search & Book</button>
+        </div>
+    </form>
+</div>
+
+
+    <!-- Cruise Tab -->
+    <div id="cruise-tab" class="tab-pane">
+        <form id="cruiseBookingForm" class="booking-form">
+            <h2>Book Your Cruise</h2>
+            <!-- Add your Cruise fields here -->
+            <div class="form-row">
+                <input type="text" id="name" name="name" placeholder="Name" required>
+                <input type="tel" id="phone" name="phone" placeholder="Mobile Phone Number" required>
+                <input type="text" placeholder="Destination / Port" required>
+                <input type="date" placeholder="Departure Date" required>
+                <select required>
+                    <option value="">Duration</option>
+                    <option value="3n">3 Nights</option>
+                    <option value="5n">5 Nights</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="number" placeholder="Guests" min="1" required>
+                <textarea rows="3" placeholder="Special Requests"></textarea>
+                <button type="submit">Enquire Now</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Visa Tab -->
+    <div id="visa-tab" class="tab-pane">
+    <form id="visaBookingForm" class="booking-form">
+        <h2>Book Your Visa</h2>
+        <div class="form-row">
+            <input type="text" id="visaName" placeholder="Name" required>
+            <input type="tel" id="visaPhone" placeholder="Mobile Phone Number" required>
+            <input type="email" id="visaEmail" placeholder="Email" required>
+        </div>
+        <div class="form-row">
+            <input type="tel" id="visaPhone2" placeholder="Alternate Phone" required>
+            <select id="visaDestination" required>
+                <option value="">Destination Country</option>
+                <option value="usa">USA</option>
+                <option value="uk">UK</option>
+                <option value="dubai">Dubai</option>
+                <!-- Add more as needed -->
+            </select>
+        </div>
+        <div class="form-row last-row">
+            <textarea id="visaDetails" rows="4" placeholder="Travel Details / Purpose"></textarea>
+            <button type="submit">Request Visa Help</button>
+        </div>
+    </form>
+</div>
+</div>
+    
+</section>
+
+
+    <!-- Packages Section (now the first visible content) -->
+    <section id="packages">
+        <h2 class="section-title">Upcoming Holiday Packages</h2>
+        <div class="container">
+            <div class="filter-container">
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="International">International</option>
+                    <option value="India">India</option>
+                    <option value="Local">Local</option>
+                    <option value="Hill station">Hill Station</option>
+                    <option value="ABC1">ABC1</option>
+                    <option value="ABC2">ABC2</option>
+                </select>
+                <input type="search" id="tagSearch" placeholder="Search by tag (e.g., Summer Vacation, Adventure)">
+            </div>
+
+            <div class="packages-grid" id="packagesGrid">
+                <!-- Cards generated dynamically here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for More Details -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalDescription"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <h3>Exotica Holiday</h3>
+            <p>Adventure Tours | Group Trips | Backpacking | Biking</p>
+            <p>Follow us on Instagram: @exoticaholiday</p>
+            <p>© 2025 Exotica Holiday. All rights reserved.</p>
+        </div>
+    </footer>
+
+<script>
+    // Firebase SDK - Add this if not already present
+    // (Note: Replace with your actual Firebase config from the console)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDdfXeJG76KTsVUIBuAdFQ_uejrImaPQaw",
+  authDomain: "exotica-hoidays.firebaseapp.com",
+  projectId: "exotica-hoidays",
+  storageBucket: "exotica-hoidays.firebasestorage.app",
+  messagingSenderId: "151952804646",
+  appId: "1:151952804646:web:8417305702390c9e538fe7",
+  measurementId: "G-X011TY1K5Y"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Mobile menu toggle
+    document.getElementById('menuToggle').addEventListener('click', () => {
+        document.querySelector('nav ul').classList.toggle('active');
+    });
+
+    // Load packages from Firebase
+    let packages = [];
+
+    // Render packages dynamically
+    function renderPackages(filteredPackages = packages) {
+        const grid = document.getElementById('packagesGrid');
+        grid.innerHTML = ''; // Clear existing cards
+
+        if (filteredPackages.length === 0) {
+            grid.innerHTML = '<p style="text-align:center; font-size:1.2rem;">No packages found.</p>';
+            return;
+        }
+
+        filteredPackages.forEach(pkg => {
+            const card = document.createElement('div');
+            card.className = 'flip-card';
+            card.dataset.package = pkg.dataPackage;
+
+            card.innerHTML = `
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <div class="package-img" style="background-image: url('${pkg.imageUrl}')"></div>
+                        <div class="package-content">
+                            <h3>${pkg.title}</h3>
+                            <p>
+                                ${pkg.saleText ? `<span class="sale">${pkg.saleText}</span>` : ''}
+                                <span class="price">₹${pkg.price}</span>
+                                ${pkg.oldPrice ? `<span class="old-price">₹${pkg.oldPrice}</span>` : ''}
+                            </p>
+                            <p>${pkg.description}</p>
+                            <p><strong>${pkg.location}</strong> • ${pkg.duration}</p>
+                            <div class="btn">View Details</div>
+                        </div>
+                    </div>
+                    <div class="flip-card-back">
+                        <h3>${pkg.title}</h3>
+                        <ul>
+                            <li><i class="fas fa-map-marker-alt"></i> ${pkg.location}</li>
+                            <li><i class="fas fa-calendar-alt"></i> ${pkg.duration}</li>
+                        </ul>
+                        <a href="contact.html?package=${encodeURIComponent(pkg.dataPackage)}" class="btn">Book Now</a>
+                        <div class="btn more-details">More Details</div>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        attachListeners();
+    }
+
+    // Attach event listeners (flip, swipe, modal)
+    function attachListeners() {
+        document.querySelectorAll('.flip-card').forEach(card => {
+            let startX = 0;
+            let currentX = 0;
+            let isSwiping = false;
+            let threshold = 60;
+
+            const inner = card.querySelector('.flip-card-inner');
+
+            // Swipe support
+            card.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                isSwiping = true;
+            }, { passive: true });
+
+            card.addEventListener('touchmove', e => {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                inner.style.transform = `rotateY(${diff * 0.3}deg) scale(1.02)`;
+            }, { passive: true });
+
+            card.addEventListener('touchend', () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                inner.style.transform = '';
+                const diff = currentX - startX;
+                if (Math.abs(diff) > threshold) inner.classList.toggle('flipped');
+            }, { passive: true });
+
+            // Click to flip (except buttons)
+            card.addEventListener('click', e => {
+                if (e.target.closest('.more-details')) {
+                    e.stopPropagation();
+                    const pkg = packages.find(p => p.dataPackage === card.dataset.package);
+                    if (pkg) {
+                        document.getElementById('modalTitle').textContent = pkg.title;
+                        document.getElementById('modalDescription').innerHTML = pkg.moreDetails || pkg.description || 'No details available.';
+                        document.getElementById('detailsModal').style.display = 'block';
+                    }
+                    return;
+                }
+                inner.classList.toggle('flipped');
+            });
+        });
+
+        // Modal close
+        const modal = document.getElementById('detailsModal');
+        document.querySelector('.close').addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', e => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    // Filter and search logic
+    function filterPackages() {
+        const category = document.getElementById('categoryFilter').value;
+        const searchTerm = document.getElementById('tagSearch').value.toLowerCase().trim();
+
+        let filtered = packages;
+
+        if (category) {
+            filtered = filtered.filter(pkg => pkg.category === category);
+        }
+
+        if (searchTerm) {
+            filtered = filtered.filter(pkg => {
+                const tags = (pkg.tags || []).map(tag => tag.toLowerCase());
+                return tags.some(tag => tag.includes(searchTerm)) || pkg.title.toLowerCase().includes(searchTerm);
+            });
+        }
+
+        renderPackages(filtered);
+    }
+
+// Load packages from Firebase - Sorted by sortOrder (lowest number = first)
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.getElementById('packagesGrid');
+    grid.innerHTML = '<p style="text-align:center; padding:2rem;">Loading packages...</p>';
+
+    db.collection('packages').get()
+        .then(snapshot => {
+            grid.innerHTML = '';
+
+            if (snapshot.empty) {
+                grid.innerHTML = '<p style="text-align:center;">No packages available.</p>';
+                return;
+            }
+
+            let packages = [];
+            snapshot.forEach(doc => {
+                const pkg = doc.data();
+                pkg.id = doc.id;
+                pkg.sortOrder = pkg.sortOrder !== undefined ? Number(pkg.sortOrder) : 9999;
+                packages.push(pkg);
+            });
+
+            // Sort by sortOrder ascending (0 = first, higher = later)
+            packages.sort((a, b) => a.sortOrder - b.sortOrder);
+
+            renderPackages(packages); // Use sorted list
+        })
+        .catch(err => {
+            console.error("Error loading packages:", err);
+            grid.innerHTML = '<p style="text-align:center; color:red;">Error loading packages.</p>';
+        });
+});
+
+    // Category filter change
+    document.getElementById('categoryFilter').addEventListener('change', filterPackages);
+
+    // Tag search input (live filter)
+    document.getElementById('tagSearch').addEventListener('input', filterPackages);
+
+    // Populate Select Package dropdown from Firebase
+    document.addEventListener('DOMContentLoaded', () => {
+        db.collection('packages').get().then((querySnapshot) => {
+            const packageSelect = document.getElementById('package');
+            if (packageSelect) {
+                packageSelect.innerHTML = '<option value="">Select Package</option>';
+                querySnapshot.forEach((doc) => {
+                    const pkg = doc.data();
+                    const option = document.createElement('option');
+                    option.value = pkg.dataPackage;
+                    option.textContent = `${pkg.title} (${pkg.duration}) - ₹${pkg.price}`;
+                    packageSelect.appendChild(option);
+                });
+            }
+        }).catch((error) => {
+            console.error("Error loading package dropdown: ", error);
+        });
+    });
+
+    // Tab Switching Logic for All Tabs
+    // Tab Switching + Hero Slide Switching (Fully Contained in Left Section)
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabButtons = document.querySelectorAll('.booking-tabs .tab-btn');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Tab switching
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+
+                // Hero switching (only inside left section)
+                document.querySelectorAll('.inner-left .hero-slide').forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                document.getElementById(`hero-${tabId}`).classList.add('active');
+            });
+        });
+    });
+
+    // #### to storage booking data
+
+    // Unified Booking Storage Logic
+    const BOOKINGS_KEY = 'exoticaUnifiedBookings';  // We'll keep this for fallback, but use Firebase
+
+    // Function to save a booking (use Firebase)
+    // Unified Booking Storage Logic - Fixed & Complete
+function saveBooking(bookingData) {
+    const newBooking = {
+        id: Date.now().toString(),
+        type: bookingData.type,
+        timestamp: new Date().toISOString(),
+        status: 'pending',
+        name: bookingData.name || '',
+        persons: parseInt(bookingData.persons) || 1,
+        phone: bookingData.phone || '',
+        email: bookingData.email || '',
+        travelDate: bookingData.travelDate || '',
+        additionalInfo: bookingData.additionalInfo || ''
+    };
+
+    // Add type-specific fields
+    if (bookingData.type === 'package') {
+        newBooking.packageId = bookingData.packageId;
+        newBooking.hotelCategory = bookingData.hotelCategory;
+        newBooking.mealType = bookingData.mealType;
+    } else if (bookingData.type === 'car') {
+        newBooking.pickupLocation = bookingData.pickupLocation;
+        newBooking.pickupDate = bookingData.pickupDate;
+        newBooking.pickupTime = bookingData.pickupTime || '';
+        newBooking.dropoffDate = bookingData.dropoffDate;
+        newBooking.dropoffTime = bookingData.dropoffTime || '';
+        newBooking.vehicleType = bookingData.vehicleType;
+    } else if (bookingData.type === 'cruise') {
+        newBooking.cruiseDestination = bookingData.cruiseDestination;
+        newBooking.departureDate = bookingData.departureDate;
+        newBooking.cruiseDuration = bookingData.cruiseDuration;
+        newBooking.guests = parseInt(bookingData.guests) || 1;
+    } else if (bookingData.type === 'visa') {
+        newBooking.visaDestination = bookingData.visaDestination;
+        newBooking.visaDetails = bookingData.visaDetails;
+    }
+
+    // Save to Firebase
+    db.collection('bookings').doc(newBooking.id).set(newBooking)
+        .then(() => {
+            alert('Booking submitted successfully!');
+        })
+        .catch((error) => {
+            console.error("Error saving booking:", error);
+            alert('Error submitting booking. Please try again.');
+        });
+}
+
+// Attach Form Listeners - All 4 Forms
+document.addEventListener('DOMContentLoaded', () => {
+    // Package Form
+    const packageForm = document.getElementById('packageBookingForm');
+    if (packageForm) {
+        packageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveBooking({
+                type: 'package',
+                name: document.getElementById('name').value.trim(),
+                persons: document.getElementById('persons').value,
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                packageId: document.getElementById('package').value,
+                travelDate: document.getElementById('travelDate').value,
+                hotelCategory: document.getElementById('hotelCategory').value,
+                mealType: document.getElementById('mealType').value,
+                additionalInfo: document.getElementById('additionalInfo').value.trim()
+            });
+            packageForm.reset();
+        });
+    }
+
+    // Car Form
+    const carForm = document.getElementById('carBookingForm');
+    if (carForm) {
+        carForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveBooking({
+                type: 'car',
+                name: carForm.querySelector('input[placeholder="Name"]')?.value.trim() || '',
+                phone: carForm.querySelector('input[placeholder="Mobile Phone Number"]')?.value.trim() || '',
+                pickupLocation: carForm.querySelector('input[placeholder="Pick-up Location"]')?.value.trim() || '',
+                destinationLocation: carForm.querySelector('input[placeholder="Destination Location"]')?.value.trim() || '',
+                pickupDate: carForm.querySelector('input[placeholder="Pick-up Date"]')?.value || '',
+                dropoffDate: carForm.querySelector('input[placeholder="Drop-off Date"]')?.value || '',
+                vehicleType: carForm.querySelector('select')?.value || '',
+                additionalInfo: carForm.querySelector('textarea')?.value.trim() || ''
+            });
+            carForm.reset();
+        });
+    }
+
+    // Cruise Form
+    const cruiseForm = document.getElementById('cruiseBookingForm');
+    if (cruiseForm) {
+        cruiseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveBooking({
+                type: 'cruise',
+                name: cruiseForm.querySelector('input[placeholder="Name"]')?.value.trim() || '',
+                phone: cruiseForm.querySelector('input[placeholder="Mobile Phone Number"]')?.value.trim() || '',
+                cruiseDestination: cruiseForm.querySelector('input[placeholder="Destination / Port"]')?.value.trim() || '',
+                departureDate: cruiseForm.querySelector('input[placeholder="Departure Date"]')?.value || '',
+                cruiseDuration: cruiseForm.querySelector('select')?.value || '',
+                guests: cruiseForm.querySelector('input[placeholder="Guests"]')?.value || 1,
+                additionalInfo: cruiseForm.querySelector('textarea')?.value.trim() || ''
+            });
+            cruiseForm.reset();
+        });
+    }
+
+    // Visa Form
+  // Visa Form
+const visaForm = document.getElementById('visaBookingForm');
+if (visaForm) {
+    visaForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveBooking({
+            type: 'visa',
+            name: document.getElementById('visaName')?.value.trim() || '',
+            phone: document.getElementById('visaPhone')?.value.trim() || '',
+            email: document.getElementById('visaEmail')?.value.trim() || '',
+            visaDestination: document.getElementById('visaDestination')?.value || '',
+            visaDetails: document.getElementById('visaDetails')?.value.trim() || ''
+        });
+        visaForm.reset();
+    });
+}   
+});
+
+    // Attach to Package Form
+    document.getElementById('packageBookingForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveBooking({
+            type: 'package',
+            name: document.getElementById('name').value,
+            persons: document.getElementById('persons').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            packageId: document.getElementById('package').value,
+            travelDate: document.getElementById('travelDate').value,
+            hotelCategory: document.getElementById('hotelCategory').value,
+            mealType: document.getElementById('mealType').value,
+            additionalInfo: document.getElementById('additionalInfo').value
+        });
+        e.target.reset();
+    });
+
+    // Attach to Car Form (similar for Cruise and Visa - add as needed)
+    document.getElementById('carBookingForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveBooking({
+            type: 'car',
+            name: document.getElementById('name').value,
+            persons: 1,
+            phone: document.getElementById('phone').value,
+            pickupLocation: document.getElementById('pickupLocation').value,
+            pickupDate: document.getElementById('pickupDate').value,
+            pickupTime: document.getElementById('pickupTime').value,
+            dropoffDate: document.getElementById('dropoffDate').value,
+            dropoffTime: document.getElementById('dropoffTime').value,
+            vehicleType: document.getElementById('vehicleType').value,
+            additionalInfo: document.getElementById('carSpecialRequests').value
+        });
+        e.target.reset();
+    });
+
+    // ... Add similar listeners for cruise and visa forms ...
+
+    // Dynamic Hero Loading + Automatic Slideshow + Pause on Hover + Right Form Sync
+    document.addEventListener('DOMContentLoaded', () => {
+    // Load default Package hero on page load
+    loadHeroContent('package');
+
+    // Tab buttons
+    const tabButtons = document.querySelectorAll('.booking-tabs .tab-btn');
+
+    // Manual tab click (switch hero + form)
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active tab button
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Update active form tab
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            const tabId = button.getAttribute('data-tab');
+            const formTab = document.getElementById(`${tabId}-tab`);
+            if (formTab) formTab.classList.add('active');
+
+            // Switch hero slide and load content
+            document.querySelectorAll('.inner-left .hero-slide').forEach(slide => slide.classList.remove('active'));
+            const heroSlide = document.getElementById(`hero-${tabId}`);
+            if (heroSlide) heroSlide.classList.add('active');
+
+            loadHeroContent(tabId);
+        });
+    });
+
+    // Automatic Slideshow
+    let currentTabIndex = 0;
+    const tabs = ['package', 'car', 'cruise', 'visa'];
+    let slideshowIntervalId = null;
+
+    function startSlideshow() {
+        if (!slideshowIntervalId) {
+            slideshowIntervalId = setInterval(() => {
+                currentTabIndex = (currentTabIndex + 1) % tabs.length;
+                const nextTab = tabs[currentTabIndex];
+
+                // Update tab button
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.querySelector(`.tab-btn[data-tab="${nextTab}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                // Update form tab
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                const rightForm = document.getElementById(`${nextTab}-tab`);
+                if (rightForm) rightForm.classList.add('active');
+
+                // Switch hero slide
+                document.querySelectorAll('.inner-left .hero-slide').forEach(slide => slide.classList.remove('active'));
+                const heroSlide = document.getElementById(`hero-${nextTab}`);
+                if (heroSlide) heroSlide.classList.add('active');
+
+                // Load hero content from Firebase
+                loadHeroContent(nextTab);
+            }, 5000); // Change every 5 seconds
+        }
+    }
+
+    function stopSlideshow() {
+        if (slideshowIntervalId) {
+            clearInterval(slideshowIntervalId);
+            slideshowIntervalId = null;
+        }
+    }
+
+    // Start slideshow
+    startSlideshow();
+
+    // Pause on hover (optional - keep if you want)
+    const heroArea = document.querySelector('.inner-left');
+    const formArea = document.querySelector('.inner-right');
+
+    if (heroArea) heroArea.addEventListener('mouseenter', stopSlideshow);
+    if (formArea) formArea.addEventListener('mouseenter', stopSlideshow);
+    if (heroArea) heroArea.addEventListener('mouseleave', startSlideshow);
+    if (formArea) formArea.addEventListener('mouseleave', startSlideshow);
+});
+
+
+    // Load backdrop and text for selected tab
+// Load backdrop and text for selected tab (Fixed for your 4 separate backdrops)
+function loadHeroContent(tab) {
+    // Correct backdrop ID for each tab
+    const backdropEl = document.getElementById(`hero-backdrop-${tab}`);
+    if (backdropEl) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                backdropEl.style.backgroundImage = data.backdrop ? `url(${data.backdrop})` : 'none';
+                backdropEl.style.backgroundSize = 'cover';
+                backdropEl.style.backgroundPosition = 'center';
+                backdropEl.style.backgroundRepeat = 'no-repeat';
+            } else {
+                backdropEl.style.backgroundImage = 'none';
+            }
+        }).catch(err => {
+            console.error("Error loading backdrop:", err);
+        });
+    }
+
+    // Sale Badge (shared wrapper in your HTML)
+    const wrapper = document.getElementById('sale-badge-wrapper');
+    const badge = document.getElementById('hero-sale-badge');
+    if (wrapper && badge) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.saleBadge && data.saleBadge.trim()) {
+                    badge.textContent = data.saleBadge.trim();
+                    wrapper.style.display = 'block';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            } else {
+                wrapper.style.display = 'none';
+            }
+        });
+    }
+
+    // Heading
+    const headingEl = document.getElementById(`hero-heading-${tab}`);
+    if (headingEl) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            headingEl.textContent = doc.exists ? (doc.data().heading || '') : '';
+        });
+    }
+
+    // Description
+    const descEl = document.getElementById(`hero-desc-${tab}`);
+    if (descEl) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            descEl.textContent = doc.exists ? (doc.data().description || '') : '';
+        });
+    }
+
+    // Button 1
+    const btn1 = document.getElementById(`hero-btn1-${tab}`);
+    if (btn1) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            if (doc.exists) {
+                const d = doc.data();
+                btn1.textContent = d.btn1Text || '';
+                btn1.href = d.btn1Url || '#';
+                btn1.style.display = d.btn1Text ? 'inline-block' : 'none';
+            }
+        });
+    }
+
+    // Button 2
+    const btn2 = document.getElementById(`hero-btn2-${tab}`);
+    if (btn2) {
+        db.collection('hero').doc(tab).get().then(doc => {
+            if (doc.exists) {
+                const d = doc.data();
+                btn2.textContent = d.btn2Text || '';
+                btn2.href = d.btn2Url || '#';
+                btn2.style.display = d.btn2Text ? 'inline-block' : 'none';
+            }
+        });
+    }
+} 
+
+
+
+    // Load Dynamic Header (Company Name & Logo) from Admin Settings
+    document.addEventListener('DOMContentLoaded', () => {
+        db.collection('settings').doc('header').get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('siteName').textContent = data.companyName || 'Exotica Holiday';
+                if (data.companyLogo) {
+                    document.getElementById('siteLogo').src = data.companyLogo;
+                    document.getElementById('siteLogo').style.display = 'inline';
+                }
+            }
+        });
+    });
+
+
+</script>
+
+    
+  
+</body>
+
+
+</html>
