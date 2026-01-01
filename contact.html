@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Exotica Holiday - Contact & Book Now</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #ff4d4d;
+            --accent: #ff6b35;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+            --gray: #7d6c6c;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: var(--dark);
+            color: white;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a { color: white; text-decoration: none; font-weight: bold; }
+        nav a:hover { color: var(--primary); }
+
+        .menu-toggle { display: none; font-size: 1.8rem; cursor: pointer; }
+
+        main {
+            padding-top: 100px; /* Space for fixed header */
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem 4rem;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .form-section, .info-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin: 0.8rem 0 0.3rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.9rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        textarea { height: 140px; resize: vertical; }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+
+        button:hover {
+            background: #cc0000;
+            transform: translateY(-3px);
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-section li {
+            margin: 1.2rem 0;
+            font-size: 1.1rem;
+        }
+
+        .info-section i {
+            color: var(--primary);
+            margin-right: 0.8rem;
+            font-size: 1.4rem;
+        }
+
+        .success-msg, .error-msg {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success-msg { background: #d4edda; color: #155724; }
+        .error-msg { background: #f8d7da; color: #721c24; }
+
+        @media (max-width: 992px) {
+            .contact-container { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            nav ul { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--dark); padding: 1rem; }
+            nav ul.active { display: flex; }
+            .menu-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-container">
+            <div class="logo">Exotica Holiday 🔥</div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#packages">Packages</a></li>
+                    <li><a href="OtherServices.html">Other Services</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <main>
+                   <!-- Contact Info -->
+            <div class="info-section">
+                <h2>Get in Touch</h2>
+                <ul>
+                    <li><i class="fas fa-phone"></i> +91 98765 43210</li>
+                    <li><i class="fas fa-envelope"></i> info@exoticaholiday.com</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Adventure Street, Mumbai, India</li>
+                    <li><i class="fas fa-clock"></i> Mon - Sat: 9:00 AM - 7:00 PM</li>
+                </ul>
+
+                <h3 style="margin-top: 2rem;">Follow Us</h3>
+                <div style="font-size: 2rem; margin-top: 1rem;">
+                    <a href="#" style="color: var(--primary); margin-right: 1rem;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color: var(--primary); margin-right: 1rem;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="color: var(--primary);"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="About US">
+                <h2>Know more about us</h2>
+        </div>
+    </main>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.querySelector('nav ul').classList.toggle('active');
+        });
+
+        // Load packages into select dropdown
+        const packages = JSON.parse(localStorage.getItem('exoticaPackages')) || [];
+        const packageSelect = document.getElementById('package');
+
+        packages.forEach(pkg => {
+            const option = document.createElement('option');
+            option.value = pkg.dataPackage;
+            option.textContent = `${pkg.title} (${pkg.duration})`;
+            packageSelect.appendChild(option);
+        });
+
+        // If a package is provided via URL (?package=...), pre-select it
+        (function autoSelectFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const pkgParam = params.get('package');
+            if (!pkgParam) return;
+
+            // Try to select an existing option by value
+            const existing = Array.from(packageSelect.options).find(o => o.value === pkgParam);
+            if (existing) {
+                packageSelect.value = pkgParam;
+                // bring form into view a bit
+                packageSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // If not found, attempt to decode and add a friendly option
+            try {
+                const decoded = decodeURIComponent(pkgParam);
+                const newOpt = document.createElement('option');
+                newOpt.value = pkgParam;
+                newOpt.textContent = decoded;
+                packageSelect.appendChild(newOpt);
+                packageSelect.value = pkgParam;
+                packageSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (e) {
+                // fallback: do nothing
+                console.warn('Could not auto-select package from URL:', e);
+            }
+        })();
+
+        // Booking form submission
+        const bookingForm = document.getElementById('bookingForm');
+        const bookingMessage = document.getElementById('bookingMessage');
+
+        bookingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const bookingData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                package: document.getElementById('package').value,
+                travelDate: document.getElementById('travelDate').value,
+                travelers: document.getElementById('travelers').value,
+                message: document.getElementById('message').value.trim(),
+                timestamp: new Date().toISOString()
+            };
+
+            // Save to localStorage (bookings array)
+            let bookings = JSON.parse(localStorage.getItem('exoticaBookings')) || [];
+            bookings.push(bookingData);
+            localStorage.setItem('exoticaBookings', JSON.stringify(bookings));
+
+            // Show success message
+            bookingMessage.textContent = 'Booking request submitted successfully! We will contact you soon.';
+            bookingMessage.className = 'message success-msg';
+            bookingMessage.style.display = 'block';
+
+            // Reset form
+            bookingForm.reset();
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                bookingMessage.style.display = 'none';
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

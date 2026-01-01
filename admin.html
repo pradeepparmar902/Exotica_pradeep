@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Exotica Holiday Admin - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    
+    <!-- Firebase SDKs - Moved inside <head> -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- XLSX Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #ff4d4d;
+            --accent: #ff6b35;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light);
+            color: #222;
+            line-height: 1.6;
+            padding-top: 90px;
+        }
+
+        header {
+            background: var(--dark);
+            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        .logo {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.95;
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 36px 16px;
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .toggle-btn {
+            display: block;
+            margin: 1rem auto;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .toggle-btn:hover {
+            background: #cc0000;
+            transform: translateY(-3px);
+        }
+
+        .section-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+            margin-bottom: 3rem;
+            display: none;
+        }
+
+        label {
+            display: block;
+            margin: 0.8rem 0 0.3rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        textarea { height: 120px; resize: vertical; }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 0.9rem 1.8rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+        }
+
+        button:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        /* Remove fixed min-width and allow table to fit container */
+.table-container {
+    overflow-x: auto; /* Keep for mobile, but now rarely needed */
+    margin-bottom: 2rem;
+}
+
+table {
+    width: 100%; /* Use full available width */
+    min-width: 0; /* Remove the old min-width: 1400px */
+    table-layout: auto; /* Let columns adjust naturally */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Reduce padding and font size for better fit */
+th, td {
+    padding: 0.8rem 0.6rem; /* Smaller padding */
+    font-size: 0.9rem; /* Slightly smaller text */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Make image smaller */
+.preview {
+    width: 80px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Shorten long text columns */
+td:nth-child(8), /* Short Desc */
+td:nth-child(9)  /* More Details */ {
+    max-width: 150px;
+}
+
+/* Tags column */
+td:nth-child(11) {
+    max-width: 120px;
+}
+
+/* Actions column */
+.actions {
+    white-space: nowrap;
+}
+
+/* Optional: Make header text smaller and wrap if needed */
+th {
+    font-size: 0.85rem;
+    white-space: normal;
+    line-height: 1.3;
+}
+
+/* Responsive: On very small screens, allow minimal scroll but better than before */
+@media (max-width: 1200px) {
+    th, td {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.85rem;
+    }
+    .preview {
+        width: 60px;
+        height: 40px;
+    }
+}
+
+        th {
+            background: var(--dark);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn { background: #007bff; }
+        .delete-btn { background: var(--danger); }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+
+        img.preview {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .type-package { background: #e6f7ff; }
+        .type-car { background: #fff7e6; }
+        .type-cruise { background: #f0fff4; }
+        .type-visa { background: #fff0f6; }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .actions { flex-direction: column; }
+            button { width: 100%; margin-bottom: 0.5rem; }
+        }
+
+    table th, table td {
+    text-align: left;
+    vertical-align: middle;
+}
+
+.order-cell {
+    text-align: center;
+    font-weight: bold;
+    width: 80px;
+}
+
+.actions {
+    white-space: nowrap;
+}
+
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-container">
+            <div class="logo">Exotica Holiday Admin</div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="car-booking.html">Car Booking</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+
+
+        <!-- Toggle Buttons -->
+        <button class="toggle-btn" id="showFormBtn">+ Add New Package</button>
+        <button class="toggle-btn" id="showPackagesBtn">Show All Packages</button>
+        <button class="toggle-btn" id="showBookingsBtn">Show Unified Customer Bookings</button>
+        <button class="toggle-btn" id="showBackdropBtn">Change Hero Backdrops</button>
+        <button class="toggle-btn" id="showHeaderBtn">Change Header & Logo</button>
+        <button class="toggle-btn" id="showImportBtn">Import Packages from Excel</button>
+
+        
+
+        <!-- Import Excel Section -->
+        <div class="section-container" id="importContainer">
+            <h2>Import Packages from Excel</h2>
+            <label for="excelFile" class="btn" style="display: inline-block; cursor: pointer; padding: 1rem 2rem;">
+                Choose Excel File
+            </label>
+            <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;">
+            <p id="fileName" style="margin-top: 1rem; color: #666;">No file chosen</p>
+            <button id="importBtn" class="btn" style="margin-top: 1rem; display: none;">Import Now</button>
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                Download <a href="#" id="downloadTemplate" style="color: var(--primary);">this template</a> for correct format.
+            </p>
+        </div>
+
+        <!-- Add / Edit Package Form -->
+        <div class="section-container" id="formContainer">
+            <h2 id="formTitle">Add New Package</h2>
+            <form id="packageForm">
+                <input type="hidden" id="editIndex" value="-1">
+
+                <label for="title">Package Title</label>
+                <input type="text" id="title" required>
+                
+                <label for="sortOrder">Display Order (number, lower = higher position)</label>
+<input type="number" id="sortOrder" value="0" min="0" placeholder="e.g., 0 = top, 100 = bottom">
+                
+
+
+                <label for="price">Price (₹)</label>
+                <input type="number" id="price" required min="0">
+
+                <label for="oldPrice">Old Price (optional)</label>
+                <input type="number" id="oldPrice" min="0">
+
+                <label for="saleText">Sale Text (e.g., SALE!)</label>
+                <input type="text" id="saleText" value="SALE!">
+
+                <label for="location">Location</label>
+                <input type="text" id="location" required>
+
+                <label for="duration">Duration (e.g., 10D/9N)</label>
+                <input type="text" id="duration" required>
+
+                <label for="description">Short Description (front card)</label>
+                <textarea id="description" required></textarea>
+
+                <label for="moreDetails">More Details (long description for modal)</label>
+                <textarea id="moreDetails" rows="8" placeholder="Enter detailed information..."></textarea>
+
+                <label for="category">Category</label>
+                <select id="category" required>
+                    <option value="">Select Category</option>
+                    <option value="International">International</option>
+                    <option value="India">India</option>
+                    <option value="Local">Local</option>
+                    <option value="Hill station">Hill Station</option>
+                    <option value="ABC1">ABC1</option>
+                    <option value="ABC2">ABC2</option>
+                </select>
+
+                <label for="tags">Tags (comma-separated keywords)</label>
+                <input type="text" id="tags" placeholder="e.g., Summer Vacation, Adventure, Family Trip">
+
+                <label for="imageUrl">Image URL</label>
+                <input type="url" id="imageUrl" required placeholder="https://images.unsplash.com/...">
+
+                <label for="dataPackage">Data Package Key (unique identifier)</label>
+                <input type="text" id="dataPackage" required placeholder="e.g., kashmir">
+
+                <div style="margin-top: 1.5rem;">
+                    <button type="submit" class="btn">Save Package</button>
+                    <button type="button" id="cancelEdit" class="btn" style="display:none; background:#6c757d;">Cancel</button>
+                </div>
+            </form>
+
+            <div id="message" class="message" style="display:none;"></div>
+        </div>
+
+        <!-- Packages Table -->
+        <div class="section-container" id="packagesContainer">
+            <h2>All Packages</h2>
+            <div class="table-container">
+                <table id="packagesTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Old Price</th>
+                            <th>Sale Text</th>
+                            <th>Location</th>
+                            <th>Duration</th>
+                            <th>Short Desc</th>
+                            <th>More Details</th>
+                            <th>Category</th>
+                            <th>Tags</th>
+                            <th>Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- Unified Customer Bookings Table -->
+        <div class="section-container" id="bookingsContainer">
+            <h2>Unified Customer Bookings</h2>
+            <div class="table-container">
+                <table id="unifiedBookingsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>Persons</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Travel Date</th>
+                            <th>Additional Info</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unifiedBookingsBody"></tbody>
+                </table>
+            </div>
+        </div>
+<!-- Hero Backdrop & Text Management -->
+<div class="section-container" id="backdropContainer">
+    <h2>Change Hero Backdrops & Text</h2>
+
+    <!-- Single Form for All Tabs -->
+    <div class="section">
+        <h3>Edit Hero Content</h3>
+        <label>Select Tab to Edit</label>
+        <select id="heroTabSelect">
+            <option value="package">Package</option>
+            <option value="car">Car</option>
+            <option value="cruise">Cruise</option>
+            <option value="visa">Visa</option>
+        </select>
+
+        <label style="margin-top: 1rem;">Upload Backdrop or Paste URL</label>
+        <input type="file" id="heroBackdropFile" accept="image/*">
+        <input type="url" id="heroBackdropUrl" placeholder="Or paste image URL (e.g., Unsplash)" style="margin-top: 1rem;">
+
+        <label>Sale Badge Text</label>
+        <input type="text" id="heroSaleBadge" placeholder="e.g., BIG SALE! Up to 30% OFF 🔥">
+
+        <label>Heading</label>
+        <input type="text" id="heroHeading" placeholder="e.g., Adventure Awaits! 🌍">
+
+        <label>Description</label>
+        <textarea id="heroDescription" placeholder="e.g., Group Tours • Backpacking..."></textarea>
+
+        <label>Button 1 Text & URL</label>
+        <input type="text" id="heroBtn1Text" placeholder="Button Text">
+        <input type="url" id="heroBtn1Url" placeholder="Button Link (e.g., #packages)">
+
+        <label>Button 2 Text & URL</label>
+        <input type="text" id="heroBtn2Text" placeholder="Button Text">
+        <input type="url" id="heroBtn2Url" placeholder="Button Link">
+
+        <div style="margin-top: 1rem;">
+            <button class="btn" id="saveHero">Save / Update</button>
+            <button class="btn delete-btn" id="deleteHero" style="background: var(--danger); margin-left: 1rem;">Delete Current Tab</button>
+        </div>
+        <img id="heroPreview" class="preview" src="" alt="Preview">
+        <div id="heroMessage" class="message"></div>
+    </div>
+
+    <!-- Existing Stored Hero Content Table -->
+    <div class="section">
+        <h3>Existing Hero Content</h3>
+        <table id="backdropsTable">
+            <thead>
+                <tr>
+                    <th>Tab</th>
+                    <th>Preview</th>
+                    <th>Sale Badge</th>
+                    <th>Heading</th>
+                    <th>Description</th>
+                    <th>Button 1</th>
+                    <th>Button 2</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="backdropsBody"></tbody>
+        </table>
+    </div>
+</div>
+<!-- Header Customization Container (hidden by default) -->
+<div class="section-container" id="headerCustomizationContainer" style="display: none;">
+    <h2>Header Customization</h2>
+    <div class="section">
+        <label>Company Name</label>
+        <input type="text" id="companyName" placeholder="e.g., Exotica Holiday" value="Exotica Holiday">
+
+        <label style="margin-top: 1rem;">Upload Logo (PNG, JPG, SVG recommended)</label>
+        <input type="file" id="logoFile" accept="image/*">
+
+        <label style="margin-top: 1rem;">Or Paste Logo URL</label>
+        <input type="url" id="logoUrl" placeholder="e.g., https://example.com/logo.png">
+
+        <div style="margin-top: 1rem;">
+            <button class="btn" id="saveHeader">Save / Update Header</button>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <h4>Preview</h4>
+            <div style="background: #1a1a1a; padding: 1rem; border-radius: 8px; display: flex; align-items: center; gap: 1rem;">
+                <img id="logoPreview" src="" alt="Logo Preview" style="height: 50px; display: none;">
+                <span id="namePreview" style="color: #ff4d4d; font-size: 1.8rem; font-weight: bold;">Exotica Holiday</span>
+            </div>
+        </div>
+
+        <div id="headerMessage" class="message"></div>
+    </div>
+</div>
+
+
+    </main>
+
+        
+    
+    <script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyDdfXeJG76KTsVUIBuAdFQ_uejrImaPQaw",
+        authDomain: "exotica-hoidays.firebaseapp.com",
+        projectId: "exotica-hoidays",
+        storageBucket: "exotica-hoidays.firebasestorage.app",
+        messagingSenderId: "151952804646",
+        appId: "1:151952804646:web:8417305702390c9e538fe7",
+        measurementId: "G-X011TY1K5Y"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ALL ELEMENTS DECLARED AT TOP (Critical Fix!)
+    const form = document.getElementById('packageForm');
+    const tableBody = document.getElementById('tableBody');
+    const messageDiv = document.getElementById('message');
+    const formTitle = document.getElementById('formTitle');
+    const editIndexInput = document.getElementById('editIndex');
+    const cancelBtn = document.getElementById('cancelEdit');
+    const formContainer = document.getElementById('formContainer');
+    const packagesContainer = document.getElementById('packagesContainer');
+    const bookingsContainer = document.getElementById('bookingsContainer');
+    // const backdropContainer = document.getElementById('backdropContainer');
+    const headerCustomizationContainer = document.getElementById('headerCustomizationContainer');
+    const showFormBtn = document.getElementById('showFormBtn');
+    const showPackagesBtn = document.getElementById('showPackagesBtn');
+    const showBookingsBtn = document.getElementById('showBookingsBtn');
+    const showBackdropBtn = document.getElementById('showBackdropBtn');
+    const showHeaderBtn = document.getElementById('showHeaderBtn');        // ← Now declared here
+    // const showImportBtn = document.getElementById('showImportBtn');        // ← Now declared here
+
+    const heroTabs = ['package', 'car', 'cruise', 'visa'];
+
+    // TOGGLE BUTTONS (All working now)
+    if (showFormBtn && formContainer) {
+        showFormBtn.addEventListener('click', () => {
+            formContainer.style.display = formContainer.style.display === 'block' ? 'none' : 'block';
+            showFormBtn.textContent = formContainer.style.display === 'block' ? 'Hide Add Form' : '+ Add New Package';
+        });
+    }
+
+    if (showPackagesBtn && packagesContainer) {
+        showPackagesBtn.addEventListener('click', () => {
+            packagesContainer.style.display = packagesContainer.style.display === 'block' ? 'none' : 'block';
+            showPackagesBtn.textContent = packagesContainer.style.display === 'block' ? 'Hide All Packages' : 'Show All Packages';
+            if (packagesContainer.style.display === 'block') loadPackages();
+        });
+    }
+
+    if (showBookingsBtn && bookingsContainer) {
+        showBookingsBtn.addEventListener('click', () => {
+            bookingsContainer.style.display = bookingsContainer.style.display === 'block' ? 'none' : 'block';
+            showBookingsBtn.textContent = bookingsContainer.style.display === 'block' ? 'Hide Unified Bookings' : 'Show Unified Customer Bookings';
+            if (bookingsContainer.style.display === 'block') loadUnifiedBookings();
+        });
+    }
+
+    if (showBackdropBtn && backdropContainer) {
+        showBackdropBtn.addEventListener('click', () => {
+            backdropContainer.style.display = backdropContainer.style.display === 'block' ? 'none' : 'block';
+            showBackdropBtn.textContent = backdropContainer.style.display === 'block' ? 'Hide Change Hero Backdrops' : 'Change Hero Backdrops';
+            if (backdropContainer.style.display === 'block') {
+                loadHeroContent();
+                loadBackdropsTable();
+            }
+        });
+    }
+// Toggle Import Excel Section
+const showImportBtn = document.getElementById('showImportBtn');
+const importContainer = document.getElementById('importContainer');
+
+if (showImportBtn && importContainer) {
+    showImportBtn.addEventListener('click', () => {
+        importContainer.style.display = importContainer.style.display === 'block' ? 'none' : 'block';
+        showImportBtn.textContent = importContainer.style.display === 'block' ? 'Hide Import Excel' : 'Import Packages from Excel';
+    });
+}
+
+// Import Elements
+const excelFileInput = document.getElementById('excelFile');
+const fileNameDisplay = document.getElementById('fileName');
+const importBtn = document.getElementById('importBtn');
+
+// Show file name and button
+if (excelFileInput && fileNameDisplay && importBtn) {
+    excelFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            fileNameDisplay.textContent = file.name;
+            importBtn.style.display = 'inline-block';
+        } else {
+            fileNameDisplay.textContent = 'No file chosen';
+            importBtn.style.display = 'none';
+        }
+    });
+}
+
+// Load Packages from Firebase - Sorted by sortOrder (lowest number = top)
+// Load Packages from Firebase - Sorted by sortOrder (lowest number = top)
+function loadPackages() {
+    tableBody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:2rem;">Loading packages...</td></tr>';
+
+    db.collection('packages').get()
+        .then(snapshot => {
+            tableBody.innerHTML = '';
+
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="13" class="no-data">No packages found.</td></tr>';
+                return;
+            }
+
+            let packages = [];
+            snapshot.forEach(doc => {
+                const pkg = doc.data();
+                pkg.id = doc.id;
+                pkg.sortOrder = pkg.sortOrder !== undefined ? Number(pkg.sortOrder) : 9999;
+                packages.push(pkg);
+            });
+
+            // Sort by sortOrder (lowest number at top)
+            packages.sort((a, b) => a.sortOrder - b.sortOrder);
+
+            packages.forEach(pkg => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><img src="${pkg.imageUrl}" class="preview" alt="${pkg.title}"></td>
+                    <td><strong>${pkg.title}</strong></td>
+                    <td>₹${pkg.price}</td>
+                    <td>${pkg.oldPrice ? '₹' + pkg.oldPrice : '-'}</td>
+                    <td>${pkg.saleText || '-'}</td>
+                    <td>${pkg.location}</td>
+                    <td>${pkg.duration}</td>
+                    <td>${pkg.description.substring(0, 50)}${pkg.description.length > 50 ? '...' : ''}</td>
+                    <td>${pkg.moreDetails ? pkg.moreDetails.substring(0, 50) + '...' : '-'}</td>
+                    <td>${pkg.category || '-'}</td>
+                    <td>${pkg.tags ? pkg.tags.join(', ') : '-'}</td>
+                    <td class="order-cell">${pkg.sortOrder}</td>
+                    <td class="actions">
+                        <button class="btn edit-btn" onclick="editPackage('${pkg.id}')">Edit</button>
+                        <button class="btn delete-btn" onclick="deletePackage('${pkg.id}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading packages:", err);
+            tableBody.innerHTML = '<tr><td colspan="13" class="no-data">Error loading packages.</td></tr>';
+        });
+}
+
+// Main Import Function - Fixed with uppercase XLSX
+if (importBtn) {
+    importBtn.addEventListener('click', () => {
+        const file = excelFileInput.files[0];
+        if (!file) {
+            showMessage('Please select an Excel file first.', 'error');
+            return;
+        }
+
+        importBtn.disabled = true;
+        importBtn.textContent = 'Importing...';
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });  // ← Uppercase XLSX
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);  // ← Uppercase XLSX
+
+                if (rows.length === 0) {
+                    showMessage('Excel file is empty.', 'error');
+                    resetImport();
+                    return;
+                }
+
+                let imported = 0;
+                let skipped = 0;
+                const total = rows.length;
+
+                const checkComplete = () => {
+                    if (imported + skipped === total) {
+                        const msg = imported === total
+                            ? `🎉 Success! All ${imported} packages imported successfully!`
+                            : `✅ Import complete! ${imported} package(s) imported, ${skipped} skipped.`;
+
+                        showMessage(msg, 'success');
+                        loadPackages(); // Refresh table
+                        resetImport();
+                    }
+                };
+
+                const resetImport = () => {
+                    importBtn.disabled = false;
+                    importBtn.textContent = 'Import Now';
+                    excelFileInput.value = '';
+                    fileNameDisplay.textContent = 'No file chosen';
+                    importBtn.style.display = 'none';
+                };
+
+                rows.forEach((row, index) => {
+                    const pkg = {
+                        title: String(row.Title || row.title || `Package ${index + 1}`).trim(),
+                        price: Number(row.Price || row.price || 0),
+                        oldPrice: row['Old Price'] || row.oldPrice || null,
+                        saleText: String(row['Sale Text'] || row.saleText || 'SALE!').trim(),
+                        location: String(row.Location || row.location || '').trim(),
+                        duration: String(row.Duration || row.duration || '').trim(),
+                        description: String(row.Description || row.description || '').trim(),
+                        moreDetails: String(row['More Details'] || row.moreDetails || '').trim(),
+                        category: String(row.Category || row.category || '').trim(),
+                        tags: String(row.Tags || row.tags || '').split(',').map(t => t.trim()).filter(t => t),
+                        imageUrl: String(row['Image URL'] || row.imageUrl || '').trim(),
+                        dataPackage: `import-${Date.now()}-${index}`  // Unique every time
+                    };
+
+                    // Validation
+                    if (!pkg.title || !pkg.price || !pkg.location || !pkg.duration || !pkg.imageUrl) {
+                        skipped++;
+                        checkComplete();
+                        return;
+                    }
+
+                    // Save to Firebase
+                    db.collection('packages').doc(pkg.dataPackage).set(pkg)
+                        .then(() => {
+                            imported++;
+                            checkComplete();
+                        })
+                        .catch((err) => {
+                            console.error('Import error:', err);
+                            skipped++;
+                            checkComplete();
+                        });
+                });
+
+            } catch (err) {
+                console.error('Excel read error:', err);
+                showMessage('Invalid Excel file format.', 'error');
+                importBtn.disabled = false;
+                importBtn.textContent = 'Import Now';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+
+
+// Helper function for success message (called when all rows processed)
+function showSuccessMessage(imported, skipped, total) {
+    const message = imported === total
+        ? `🎉 Success! All ${imported} packages imported successfully!`
+        : `✅ Import complete! ${imported} package(s) imported, ${skipped} skipped (missing required fields).`;
+
+    showMessage(message, 'success');
+    loadPackages(); // Refresh table
+
+    // Reset form
+    excelFileInput.value = '';
+    fileNameDisplay.textContent = 'No file chosen';
+    importBtn.style.display = 'none';
+}
+    
+    // Load Hero Content for selected tab
+    document.getElementById('heroTabSelect').addEventListener('change', loadHeroContent);
+
+   function loadHeroContent() {
+    const tab = document.getElementById('heroTabSelect').value;
+    db.collection('hero').doc(tab).get().then(doc => {
+        if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('heroPreview').src = data.backdrop || '';
+                document.getElementById('heroSaleBadge').value = data.saleBadge || '';
+                document.getElementById('heroHeading').value = data.heading || '';
+                document.getElementById('heroDescription').value = data.description || '';
+                document.getElementById('heroBtn1Text').value = data.btn1Text || '';
+                document.getElementById('heroBtn1Url').value = data.btn1Url || '';
+                document.getElementById('heroBtn2Text').value = data.btn2Text || '';
+                document.getElementById('heroBtn2Url').value = data.btn2Url || '';
+            } else {
+                // Clear fields if no data
+                document.getElementById('heroPreview').src = '';
+                document.getElementById('heroSaleBadge').value = '';
+                document.getElementById('heroHeading').value = '';
+                document.getElementById('heroDescription').value = '';
+                document.getElementById('heroBtn1Text').value = '';
+                document.getElementById('heroBtn1Url').value = '';
+                document.getElementById('heroBtn2Text').value = '';
+                document.getElementById('heroBtn2Url').value = '';
+            }
+        });
+    }
+
+    // Save Hero Content
+    // Save current tab's content to Firebase
+document.getElementById('saveHero').addEventListener('click', () => {
+    const tab = document.getElementById('heroTabSelect').value;
+    const fileInput = document.getElementById('heroBackdropFile');
+    const urlInput = document.getElementById('heroBackdropUrl').value.trim();
+    const file = fileInput.files[0];
+
+    const heroData = {
+        saleBadge: document.getElementById('heroSaleBadge').value.trim(),
+        heading: document.getElementById('heroHeading').value.trim(),
+        description: document.getElementById('heroDescription').value.trim(),
+        btn1Text: document.getElementById('heroBtn1Text').value.trim(),
+        btn1Url: document.getElementById('heroBtn1Url').value.trim(),
+        btn2Text: document.getElementById('heroBtn2Text').value.trim(),
+        btn2Url: document.getElementById('heroBtn2Url').value.trim()
+    };
+
+    const saveToFirebase = (backdropUrl) => {
+        heroData.backdrop = backdropUrl || '';
+
+        db.collection('hero').doc(tab).set(heroData)
+            .then(() => {
+                showMessage(`${tab.charAt(0).toUpperCase() + tab.slice(1)} Hero updated in Firebase!`, 'success');
+                loadBackdropsTable();
+                document.getElementById('heroPreview').src = backdropUrl || '';
+            })
+            .catch((error) => {
+                console.error("Error saving hero:", error);
+                showMessage('Error saving to Firebase: ' + error.message, 'error');
+            });
+    };
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            saveToFirebase(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else if (urlInput) {
+        saveToFirebase(urlInput);
+    } else {
+        saveToFirebase('');
+    }
+
+    // Clear inputs
+    fileInput.value = '';
+    urlInput.value = '';
+});
+
+    // Delete Hero Content
+    document.getElementById('deleteHero').addEventListener('click', () => {
+        const tab = document.getElementById('heroTabSelect').value;
+        if (confirm(`Delete ${tab.charAt(0).toUpperCase() + tab.slice(1)} hero content?`)) {
+            db.collection('hero').doc(tab).delete()
+                .then(() => {
+                    loadHeroContent();
+                    loadBackdropsTable();
+                    showMessage('Hero deleted!', 'success');
+                });
+        }
+    });
+
+    // Load Backdrops Table
+    function loadBackdropsTable() {
+        const tbody = document.getElementById('backdropsBody');
+        tbody.innerHTML = '';
+
+        heroTabs.forEach(tab => {
+            db.collection('hero').doc(tab).get().then(doc => {
+                const data = doc.exists ? doc.data() : {};
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tab.charAt(0).toUpperCase() + tab.slice(1)}</td>
+                    <td>${data.backdrop ? `<img src="${data.backdrop}" style="max-width: 150px; height: 80px; object-fit: cover; border-radius: 6px;">` : 'No backdrop'}</td>
+                    <td>${data.saleBadge || '-'}</td>
+                    <td>${data.heading || '-'}</td>
+                    <td>${data.description ? data.description.substring(0, 50) + '...' : '-'}</td>
+                    <td>${data.btn1Text || '-'}</td>
+                    <td>${data.btn2Text || '-'}</td>
+                    <td><button class="btn delete-btn" onclick="deleteHeroContent('${tab}')">Delete</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+    }
+
+    // Load Packages from Firebase
+    
+
+    // Save/Edit Package
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pkg = {
+            title: document.getElementById('title').value.trim(),
+            price: document.getElementById('price').value.trim(),
+            oldPrice: document.getElementById('oldPrice').value.trim() || null,
+            saleText: document.getElementById('saleText').value.trim(),
+            location: document.getElementById('location').value.trim(),
+            duration: document.getElementById('duration').value.trim(),
+            description: document.getElementById('description').value.trim(),
+            moreDetails: document.getElementById('moreDetails').value.trim(),
+            category: document.getElementById('category').value,
+            tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
+            imageUrl: document.getElementById('imageUrl').value.trim(),
+            dataPackage: document.getElementById('dataPackage').value.trim().toLowerCase(),
+            sortOrder: Number(document.getElementById('sortOrder')?.value) || 0
+        };
+
+        const editId = editIndexInput.value;
+
+        if (editId && editId !== '-1') {
+            db.collection('packages').doc(editId).set(pkg)
+                .then(() => showMessage('Package updated!', 'success'));
+        } else {
+            db.collection('packages').doc(pkg.dataPackage).set(pkg)
+                .then(() => showMessage('Package added!', 'success'));
+        }
+
+        form.reset();
+        formTitle.textContent = 'Add New Package';
+        editIndexInput.value = '-1';
+        cancelBtn.style.display = 'none';
+        formContainer.style.display = 'none';
+        showFormBtn.textContent = '+ Add New Package';
+        loadPackages();
+    });
+
+    // Edit Package
+    function editPackage(docId) {
+        db.collection('packages').doc(docId).get().then(doc => {
+            if (doc.exists) {
+                const pkg = doc.data();
+                document.getElementById('title').value = pkg.title;
+                document.getElementById('price').value = pkg.price;
+                document.getElementById('oldPrice').value = pkg.oldPrice || '';
+                document.getElementById('saleText').value = pkg.saleText || '';
+                document.getElementById('location').value = pkg.location;
+                document.getElementById('duration').value = pkg.duration;
+                document.getElementById('description').value = pkg.description;
+                document.getElementById('moreDetails').value = pkg.moreDetails || '';
+                document.getElementById('category').value = pkg.category || '';
+                document.getElementById('tags').value = pkg.tags ? pkg.tags.join(', ') : '';
+                document.getElementById('imageUrl').value = pkg.imageUrl;
+                document.getElementById('dataPackage').value = pkg.dataPackage;
+
+                formTitle.textContent = 'Edit Package';
+                editIndexInput.value = docId;
+                cancelBtn.style.display = 'inline-block';
+                formContainer.style.display = 'block';
+                showFormBtn.textContent = 'Hide Add Form';
+            }
+        });
+    }
+
+    // Delete Package
+    function deletePackage(docId) {
+        if (confirm('Delete this package?')) {
+            db.collection('packages').doc(docId).delete()
+                .then(() => {
+                    showMessage('Package deleted!', 'success');
+                    loadPackages();
+                });
+        }
+    }
+
+    // Cancel Edit
+    cancelBtn.addEventListener('click', () => {
+        form.reset();
+        formTitle.textContent = 'Add New Package';
+        editIndexInput.value = '-1';
+        cancelBtn.style.display = 'none';
+        formContainer.style.display = 'none';
+        showFormBtn.textContent = '+ Add New Package';
+    });
+
+    // Show Message
+   // Improved showMessage - Floating, stackable messages
+function showMessage(text, type = 'success') {
+    const msg = document.createElement('div');
+    msg.textContent = text;
+    msg.style.position = 'fixed';
+    msg.style.top = '20px';
+    msg.style.right = '20px';
+    msg.style.padding = '1rem 1.5rem';
+    msg.style.borderRadius = '8px';
+    msg.style.zIndex = '10000';
+    msg.style.fontWeight = 'bold';
+    msg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    msg.style.maxWidth = '350px';
+    msg.style.wordWrap = 'break-word';
+    msg.style.marginBottom = '10px';
+    msg.style.transition = 'opacity 0.5s';
+
+    if (type === 'success') {
+        msg.style.background = '#d4edda';
+        msg.style.color = '#155724';
+        msg.style.border = '1px solid #c3e6cb';
+    } else if (type === 'error') {
+        msg.style.background = '#f8d7da';
+        msg.style.color = '#721c24';
+        msg.style.border = '1px solid #f5c6cb';
+    }
+
+    document.body.appendChild(msg);
+
+    // Auto-remove after 6 seconds
+    setTimeout(() => {
+        msg.style.opacity = '0';
+        setTimeout(() => {
+            if (msg.parentNode) msg.parentNode.removeChild(msg);
+        }, 500);
+    }, 6000);
+}
+
+    // Load Unified Bookings
+    function loadUnifiedBookings() {
+        db.collection('bookings').orderBy('timestamp', 'desc').get().then(snapshot => {
+            unifiedBookingsBody.innerHTML = '';
+            if (snapshot.empty) {
+                unifiedBookingsBody.innerHTML = '<tr><td colspan="10" class="no-data">No bookings found.</td></tr>';
+                return;
+            }
+            snapshot.forEach(doc => {
+                const booking = doc.data();
+                const row = document.createElement('tr');
+                row.className = `type-${booking.type}`;
+                row.innerHTML = `
+                    <td>${booking.id}</td>
+                    <td>${booking.type.toUpperCase()}</td>
+                    <td>${booking.name || '-'}</td>
+                    <td>${booking.persons || '-'}</td>
+                    <td>${booking.phone || '-'}</td>
+                    <td>${booking.email || '-'}</td>
+                    <td>${booking.travelDate || '-'}</td>
+                    <td>${booking.additionalInfo ? booking.additionalInfo.substring(0, 50) + '...' : '-'}</td>
+                    <td>${booking.status}</td>
+                    <td><button class="btn details-btn" onclick="showUnifiedDetails('${booking.id}')">View</button></td>
+                `;
+                unifiedBookingsBody.appendChild(row);
+            });
+        });
+    }
+
+    function showUnifiedDetails(id) {
+        db.collection('bookings').doc(id).get().then(doc => {
+            if (doc.exists) {
+                const b = doc.data();
+                alert(`ID: ${b.id}\nType: ${b.type}\nName: ${b.name}\nPhone: ${b.phone}\nDetails: ${JSON.stringify(b, null, 2)}`);
+            }
+        });
+    }
+
+    // Header Customization
+    // Header Customization Toggle & Logic (Final Working Version)
+document.addEventListener('DOMContentLoaded', () => {
+    const showHeaderBtn = document.getElementById('showHeaderBtn');
+    const headerContainer = document.getElementById('headerCustomizationContainer');
+
+    if (!showHeaderBtn || !headerContainer) {
+        console.warn('Header elements not found!');
+        return;
+    }
+
+    headerContainer.style.display = 'none';
+
+    showHeaderBtn.addEventListener('click', () => {
+        if (headerContainer.style.display === 'none') {
+            headerContainer.style.display = 'block';
+            showHeaderBtn.textContent = 'Hide Header Customization';
+
+            // Load saved data
+            db.collection('settings').doc('header').get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('companyName').value = data.companyName || 'Exotica Holiday';
+                    document.getElementById('namePreview').textContent = data.companyName || 'Exotica Holiday';
+                    const logoPreview = document.getElementById('logoPreview');
+                    if (data.companyLogo) {
+                        logoPreview.src = data.companyLogo;
+                        logoPreview.style.display = 'inline';
+                    } else {
+                        logoPreview.style.display = 'none';
+                    }
+                }
+            });
+        } else {
+            headerContainer.style.display = 'none';
+            showHeaderBtn.textContent = 'Change Header & Logo';
+        }
+    });
+
+    // Save button (Fixed)
+    document.getElementById('saveHeader').addEventListener('click', () => {
+        const name = document.getElementById('companyName').value.trim() || 'Exotica Holiday';
+        const fileInput = document.getElementById('logoFile');
+        const urlInput = document.getElementById('logoUrl').value.trim();
+        const file = fileInput.files && fileInput.files[0];
+
+        const updatePreviewAndSave = (logo) => {
+            document.getElementById('namePreview').textContent = name;
+            const logoPreview = document.getElementById('logoPreview');
+            if (logo) {
+                logoPreview.src = logo;
+                logoPreview.style.display = 'inline';
+            } else {
+                logoPreview.style.display = 'none';
+            }
+
+            db.collection('settings').doc('header').set({
+                companyName: name,
+                companyLogo: logo || null
+            }).then(() => {
+                alert('Header updated successfully! Refresh the main site to see changes.');
+            }).catch((error) => {
+                console.error("Error: ", error);
+                alert('Error saving header.');
+            });
+        };
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                updatePreviewAndSave(e.target.result);
+                fileInput.value = '';
+                document.getElementById('logoUrl').value = '';
+            };
+            reader.readAsDataURL(file);
+        } else if (urlInput) {
+            updatePreviewAndSave(urlInput);
+            fileInput.value = '';
+            document.getElementById('logoUrl').value = '';
+        } else {
+            updatePreviewAndSave('');
+            fileInput.value = '';
+            document.getElementById('logoUrl').value = '';
+        }
+    });
+});
+
+    // Initial load on page open
+    loadPackages();
+</script>
+
+</body>
+
+</html>
